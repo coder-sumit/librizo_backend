@@ -4,10 +4,13 @@ const {APP_PORT} = require("./config");
 const errorHandler = require("./middlewares/ErrorHandler");
 const mysql = require("mysql2");
 const {mysqlDB} = require("./config/mysql");
+const cors = require("cors");
+const {createOrder, verifyPayment, } = require("./controllers/paymentController");
 
 
 
 app.use(express.json());
+app.use(cors());
 
 app.get("/", (req, res)=>{
     return res.send("It's working!");
@@ -38,6 +41,9 @@ mysql_db.getConnection((err, connection) => {
 
     return;
 });
+
+app.post("/createOrder", createOrder);
+app.post("/verifyPayment", verifyPayment);
 
 
 app.listen(APP_PORT, (err)=> {
