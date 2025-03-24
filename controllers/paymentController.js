@@ -4,11 +4,18 @@ const crypto = require("crypto");
 const {RAZORPAY_API_SECRET, RAZORPAY_API_KEY} = require("../config");
 
 
-const createOrder = async(req, res, next)=>{
-    const {product_id, amt} = req.body;
+const createCustomer = async (customerData) => {
+    
+};
 
+
+const createOrder = async(req, res, next)=>{
+
+    try{
+    const {product_id, amt } = req.body;
     
 
+    
     // create an order
     const options = {
         amount: amt * 100,
@@ -16,7 +23,7 @@ const createOrder = async(req, res, next)=>{
         receipt: "receipt_order_1"
     }
 
-    try{
+
         let order = await razorpayInstance.orders.create(options);
         
         order.razorpay_api_key = RAZORPAY_API_KEY;
@@ -27,6 +34,8 @@ const createOrder = async(req, res, next)=>{
         
         return res.status(200).json(order);
     }catch(err){
+        console.log(err);
+        
         return res.status(500).json({
             success: false,
             message: "Something went wrong!"

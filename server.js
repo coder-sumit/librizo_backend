@@ -15,7 +15,7 @@ app.use(cors());
 app.get("/", (req, res)=>{
     return res.send("It's working!");
 });
-// app.use("/v1", require("./routes"));
+app.use("/v1", require("./routes"));
 
 app.use(errorHandler);
 
