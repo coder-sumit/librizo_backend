@@ -30,16 +30,32 @@ const getPricingBySeatCount = async(req, res, next)=>{
         }
 
         // find pricing plans
-        query = `SELECT plan_name, plan_price, max_cabin_count, max_user_count, discount, validity_days FROM librizo_subscription_plans WHERE max_cabin_count=${fitPlan} ORDER BY validity_days`;
+        query = `SELECT plan_id, plan_name, plan_price, max_cabin_count, max_user_count, discount, validity_days FROM librizo_subscription_plans WHERE max_cabin_count=${fitPlan} ORDER BY validity_days`;
         let [pricingPlans] = await db.query(query);
 
         
 
+        pricingPlans = pricingPlans.map((doc)=>{
+            doc.discounted_price = parseFloat(parseFloat(doc.plan_price) * ((100 - parseFloat(doc.discount))/100)).toFixed(2);
+
+            if(doc.validity_days < 35){
+                doc.avg_monthly_cost = parseFloat(doc.discounted_price).toFixed(2);
+            }else if(doc.validity_days < 100){
+                doc.avg_monthly_cost = parseFloat(doc.discounted_price/3).toFixed(2);
+            }
+            else if(doc.validity_days < 185){
+                doc.avg_monthly_cost = parseFloat(doc.discounted_price/6).toFixed(2);
+            }
+            else if(doc.validity_days < 370){
+                doc.avg_monthly_cost = parseFloat(doc.discounted_price/12).toFixed(2);
+            }
+            return doc;
+        });
         
 
 
         
-        return res.status(200).json(successBody("working!", pricingPlans));
+        return res.status(200).json(successBody("Fetch Successful!", pricingPlans));
         
 
     }catch(err){
@@ -47,4 +63,42 @@ const getPricingBySeatCount = async(req, res, next)=>{
     }
 }
 
-module.exports = {getPricingBySeatCount};
+const getPlanDataByIDForCheckout = async(req, res, next)=>{
+    try{
+        let plan_id = req.params.id;
+
+        const query = `SELECT * FROM librizo_subscription_plans WHERE plan_id = ?`;
+
+        let [planData] = await db.query(query, plan_id);
+
+        planData= planData[0];
+
+        let discount = parseFloat(planData?.discount);
+
+        // write logic to check extra discount first 5 users (5%) first 15 users (2%)
+
+       let [libraryCount] = await db.query(`SELECT COUNT(*) AS lib_count FROM library`);
+        if(libraryCount[0]?.lib_count < 5){
+            discount += 5;
+        }else if(libraryCount[0]?.lib_count < 15){
+            discount += 2;
+        }
+        planData.discount = discount;
+
+        planData.discounted_price = parseFloat(parseFloat(planData.plan_price) * ((100 - parseFloat(planData.discount))/100)).toFixed(2);
+        planData.discount_amt = parseFloat(planData.plan_price - planData.discounted_price).toFixed(2);
+
+
+        
+
+
+        return res.status(200).json(successBody("fetch successful!", planData));
+
+
+
+    }catch(err){
+        return next(err);
+    }
+}
+
+module.exports = {getPricingBySeatCount,  getPlanDataByIDForCheckout};
