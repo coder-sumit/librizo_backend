@@ -73,6 +73,10 @@ const getPlanDataByIDForCheckout = async(req, res, next)=>{
 
         planData= planData[0];
 
+        if(!planData){
+            return next(CustomErrorHandler.invalidInput("Invalid Plan id!"));
+        }
+
         let discount = parseFloat(planData?.discount);
 
         // write logic to check extra discount first 5 users (5%) first 15 users (2%)
@@ -97,6 +101,8 @@ const getPlanDataByIDForCheckout = async(req, res, next)=>{
 
 
     }catch(err){
+        console.log(err);
+        
         return next(err);
     }
 }

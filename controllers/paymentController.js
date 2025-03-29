@@ -4,9 +4,6 @@ const crypto = require("crypto");
 const {RAZORPAY_API_SECRET, RAZORPAY_API_KEY} = require("../config");
 
 
-const createCustomer = async (customerData) => {
-    
-};
 
 
 const createOrder = async(req, res, next)=>{
